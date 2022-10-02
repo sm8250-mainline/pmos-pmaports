@@ -1,0 +1,34 @@
+# Reference: <https://postmarketos.org/devicepkg>
+pkgname=device-lenovo-j716f
+pkgdesc="Lenovo Xiaoxin Pad Pro 2021"
+pkgver=1
+pkgrel=0
+url="https://postmarketos.org"
+license="MIT"
+arch="aarch64"
+options="!check !archcheck"
+depends="
+	linux-postmarketos-qcom-sm8250
+	make-dynpart-mappings
+	mesa-dri-gallium
+	mkbootimg
+	postmarketos-base
+	postmarketos-update-kernel
+	"
+makedepends="devicepkg-dev"
+
+source="
+	deviceinfo
+	"
+
+build() {
+	devicepkg_build $startdir $pkgname
+}
+
+package() {
+	devicepkg_package $startdir $pkgname
+}
+
+sha512sums="
+4dde2244e4d41bdcef90134f119579a5d3cf5df60b0ff6a20dad9e9e3368b2deb336bed9ee4404412b42e8dc2202f1fa225f218ebad01b43c3cb20c53a173e2f  deviceinfo
+"
