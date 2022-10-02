@@ -1,0 +1,65 @@
+# Reference: <https://postmarketos.org/vendorkernel>
+# Kernel config based on: arch/arm64/configs/defconfig
+
+_flavor="postmarketos-qcom-sm8250"
+pkgname=linux-$_flavor
+pkgver=6.0_rc7
+pkgrel=0
+pkgdesc="Mainline kernel fork for SM8250"
+arch="aarch64"
+_carch="arm64"
+url="https://github.com/sm8250-mainline/linux"
+license="GPL-2.0-only"
+options="!strip !check !tracedeps
+	pmb:cross-native
+	pmb:kconfigcheck-nftables
+"
+makedepends="
+	bash
+	bison
+	findutils
+	flex
+	installkernel
+	openssl-dev
+	perl
+"
+
+# Source
+_commit="b268596f946f095fd706be70d30edd411a18d3b1"
+_config="config-$_flavor.$arch"
+source="
+	$pkgname-$_commit.tar.gz::$url/archive/$_commit.tar.gz
+	$_config
+"
+builddir="$srcdir/linux-$_commit"
+
+prepare() {
+	default_prepare
+	cp "$srcdir/config-$_flavor.$arch" .config
+}
+
+build() {
+	unset LDFLAGS
+	make ARCH="$_carch" CC="${CC:-gcc}" \
+		KBUILD_BUILD_VERSION="$((pkgrel + 1 ))-$_flavor"
+}
+
+package() {
+	mkdir -p "$pkgdir"/boot
+
+	make zinstall modules_install dtbs_install \
+		ARCH="$_carch" \
+		INSTALL_PATH="$pkgdir"/boot/ \
+		INSTALL_MOD_PATH="$pkgdir" \
+		INSTALL_MOD_STRIP=1 \
+		INSTALL_DTBS_PATH="$pkgdir/usr/share/dtb"
+	rm -f "$pkgdir"/lib/modules/*/build "$pkgdir"/lib/modules/*/source
+
+	install -D "$builddir"/include/config/kernel.release \
+		"$pkgdir"/usr/share/kernel/$_flavor/kernel.release
+}
+
+sha512sums="
+4bef3495685b6d5c5a38565766f704c6909718e54fd788aff46aa5b743a9ee903ba7f578f178edf2dcda2129b41e8e12e84c8e0fb4ff5003bc6bedb31fa887f1  linux-postmarketos-qcom-sm8250-b268596f946f095fd706be70d30edd411a18d3b1.tar.gz
+12ddb34b4e12eeb28bdacfc678364e66c0e69cb2c34c4c30902af1b4b7a84e50e1a4df037b671fd398bd8c68fa1f296456ead886f7b7213e6e65883855040fec  config-postmarketos-qcom-sm8250.aarch64
+"
